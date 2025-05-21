@@ -1,0 +1,52 @@
+services:
+  mysql_db:
+    image: mysql:8.0
+    container_name: mysql_db
+    env_file: .env
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - ./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    env_file: .env
+    depends_on:
+      mysql_db:
+        condition: service_healthy
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+
+  tinkoff_app:
+    build: ./tinkoff-app
+    container_name: tinkoff_app
+    env_file: .env
+    depends_on:
+      mysql_db:
+        condition: service_healthy
+    volumes:
+      - ./tinkoff-app:/app
+    working_dir: /app
+    entrypoint: ["bash", "entrypoint.sh"]
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
+  grafana_data:

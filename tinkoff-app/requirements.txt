@@ -1,0 +1,5 @@
+tinkoff-investments
+mysql-connector-python
+pandas
+sqlalchemy
+pymysql

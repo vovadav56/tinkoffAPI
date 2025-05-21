@@ -1,0 +1,15 @@
+apiVersion: 1
+
+datasources:
+  - name: MySQL
+    type: mysql
+    access: proxy
+    url: mysql_db:3306
+    database: tinkoff_db
+    user: grafana
+    secureJsonData:
+      password: grafana
+    jsonData:
+      maxOpenConns: 10
+      maxIdleConns: 5
+      connMaxLifetime: 14400
